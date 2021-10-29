@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+# X Get Desktop
+
+from Xlib import X, display, Xatom
+from time import sleep
+disp = display.Display()
+rootwin = disp.screen().root
+rootwin.change_attributes(event_mask=X.PropertyChangeMask)
+
+DESKTOP_NAMES = disp.intern_atom("_NET_DESKTOP_NAMES")
+CURRENT_DESKTOP = disp.intern_atom("_NET_CURRENT_DESKTOP")
+
+def get_names():
+    names = rootwin.get_full_property(DESKTOP_NAMES, 0)
+    names = names.value.split(b"\x00")
+    return names
+
+def current_desktop():
+    index = rootwin.get_full_property(CURRENT_DESKTOP, Xatom.CARDINAL).value[0]
+    return get_names()[index].decode("utf-8")
+
+desktop = current_desktop()
+print(desktop, flush=True)
+while True:
+    # sleep(1)
+    e = disp.next_event()
+
+    old_desktop = desktop
+    desktop = current_desktop()
+
+    if old_desktop != desktop:
+        print(desktop, flush=True)
+    
